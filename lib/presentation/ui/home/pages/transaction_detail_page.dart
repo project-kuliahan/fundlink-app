@@ -106,7 +106,7 @@ class TransactionDetailPage extends StatelessWidget {
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: 200,
-                              errorBuilder: (_, _, _) => _photoPlaceholder(),
+                              errorBuilder: (_, e, s) => _photoPlaceholder(),
                               loadingBuilder: (_, child, progress) =>
                                   progress == null
                                   ? child

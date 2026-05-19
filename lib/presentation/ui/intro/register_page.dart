@@ -5,22 +5,23 @@ import 'package:fundlink_app/presentation/bloc/auth_bloc.dart';
 import 'package:fundlink_app/presentation/bloc/auth_event.dart';
 import 'package:fundlink_app/presentation/bloc/auth_state.dart';
 import 'package:fundlink_app/presentation/ui/home/pages/main_page.dart';
-import 'package:fundlink_app/presentation/ui/intro/register_page.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -39,7 +40,7 @@ class _LoginPageState extends State<LoginPage> {
                 backgroundColor: Colors.red,
               ),
             );
-          } else if (state is AuthSuccess) {
+          } else if (state is RegisterSuccess) {
             context.pushReplacement(const MainPage());
           }
         },
@@ -50,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 60),
+                  const SizedBox(height: 48),
                   Container(
                     width: 80,
                     height: 80,
@@ -66,14 +67,31 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Administration',
+                    'Daftar Akun',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: AppColors.black,
                     ),
                   ),
-                  const SizedBox(height: 52),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Buat akun baru untuk mulai menggunakan FundLink',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.grey.withValues(alpha: 0.8),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  _buildLabel('Nama Lengkap'),
+                  const SizedBox(height: 8),
+                  _buildTextField(
+                    controller: _nameController,
+                    hint: 'Nama lengkap',
+                    prefixIcon: Icons.person_outline,
+                  ),
+                  const SizedBox(height: 16),
                   _buildLabel('Email'),
                   const SizedBox(height: 8),
                   _buildTextField(
@@ -110,11 +128,22 @@ class _LoginPageState extends State<LoginPage> {
                           height: 50,
                           child: ElevatedButton(
                             onPressed: () {
+                              final name = _nameController.text.trim();
+                              final email = _emailController.text.trim();
+                              final password = _passwordController.text.trim();
+                              if (name.isEmpty ||
+                                  email.isEmpty ||
+                                  password.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Semua field harus diisi'),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                                return;
+                              }
                               context.read<AuthBloc>().add(
-                                LoginEvent(
-                                  _emailController.text.trim(),
-                                  _passwordController.text.trim(),
-                                ),
+                                RegisterEvent(name, email, password),
                               );
                             },
                             style: ElevatedButton.styleFrom(
@@ -125,7 +154,7 @@ class _LoginPageState extends State<LoginPage> {
                               elevation: 0,
                             ),
                             child: const Text(
-                              'Konfirmasi',
+                              'Daftar',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 15,
@@ -139,13 +168,13 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        'Belum punya akun? ',
+                        'Sudah punya akun? ',
                         style: TextStyle(fontSize: 13, color: AppColors.grey),
                       ),
                       GestureDetector(
-                        onTap: () => context.push(const RegisterPage()),
+                        onTap: () => Navigator.pop(context),
                         child: const Text(
-                          'Daftar',
+                          'Masuk',
                           style: TextStyle(
                             fontSize: 13,
                             color: AppColors.primary,
@@ -155,6 +184,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),

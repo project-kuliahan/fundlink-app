@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -187,12 +188,14 @@ class _TransactionInputPageState extends State<TransactionInputPage> {
     );
 
     Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${_isIncome ? 'Pemasukan' : 'Pengeluaran'} berhasil disimpan',
-        ),
-      ),
+    _showSuccessAlert(context, _isIncome);
+  }
+
+  static void _showSuccessAlert(BuildContext context, bool isIncome) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => _SuccessDialog(isIncome: isIncome),
     );
   }
 
@@ -254,23 +257,72 @@ class _TransactionInputPageState extends State<TransactionInputPage> {
                   color: AppColors.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Row(
+                child: Stack(
                   children: [
-                    _ToggleTab(
-                      label: 'Pemasukan',
-                      isSelected: _isIncome,
-                      onTap: () => setState(() {
-                        _isIncome = true;
-                        _selectedCategory = 'Pilih kategori transaksi';
-                      }),
+                    // Sliding indicator
+                    AnimatedAlign(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeInOut,
+                      alignment: _isIncome
+                          ? Alignment.centerLeft
+                          : Alignment.centerRight,
+                      child: FractionallySizedBox(
+                        widthFactor: 0.5,
+                        child: Container(
+                          margin: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
                     ),
-                    _ToggleTab(
-                      label: 'Pengeluaran',
-                      isSelected: !_isIncome,
-                      onTap: () => setState(() {
-                        _isIncome = false;
-                        _selectedCategory = 'Pilih kategori transaksi';
-                      }),
+                    // Labels
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() {
+                              _isIncome = true;
+                              _selectedCategory = 'Pilih kategori transaksi';
+                            }),
+                            behavior: HitTestBehavior.opaque,
+                            child: Center(
+                              child: Text(
+                                'Pemasukan',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: _isIncome
+                                      ? Colors.white
+                                      : AppColors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() {
+                              _isIncome = false;
+                              _selectedCategory = 'Pilih kategori transaksi';
+                            }),
+                            behavior: HitTestBehavior.opaque,
+                            child: Center(
+                              child: Text(
+                                'Pengeluaran',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: !_isIncome
+                                      ? Colors.white
+                                      : AppColors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -611,42 +663,6 @@ class _PickerField extends StatelessWidget {
   }
 }
 
-class _ToggleTab extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _ToggleTab({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-    child: GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        margin: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : AppColors.grey,
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
 class _OptionSheet extends StatelessWidget {
   final String title;
   final List<String> values;
@@ -679,4 +695,156 @@ class _OptionSheet extends StatelessWidget {
       ],
     ),
   );
+}
+
+
+class _SuccessDialog extends StatefulWidget {
+  final bool isIncome;
+  const _SuccessDialog({required this.isIncome});
+
+  @override
+  State<_SuccessDialog> createState() => _SuccessDialogState();
+}
+
+class _SuccessDialogState extends State<_SuccessDialog>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _scaleAnim;
+  late final Animation<double> _arcAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _scaleAnim = CurvedAnimation(
+      parent: _ctrl,
+      curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
+    );
+    _arcAnim = CurvedAnimation(
+      parent: _ctrl,
+      curve: const Interval(0.2, 1.0, curve: Curves.easeOut),
+    );
+    _ctrl.forward();
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) Navigator.of(context).pop();
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = widget.isIncome ? AppColors.primary : Colors.red;
+    final icon = widget.isIncome
+        ? Icons.trending_up_rounded
+        : Icons.trending_down_rounded;
+    final label = widget.isIncome ? 'Pemasukan' : 'Pengeluaran';
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      child: ScaleTransition(
+        scale: _scaleAnim,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedBuilder(
+                animation: _arcAnim,
+                builder: (context, child) => CustomPaint(
+                  painter: _ArcPainter(
+                    progress: _arcAnim.value,
+                    color: color,
+                  ),
+                  child: child,
+                ),
+                child: Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: color, size: 36),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Berhasil!',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.black,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Data $label berhasil ditambahkan',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14, color: AppColors.grey),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ArcPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+
+  _ArcPainter({required this.progress, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+
+    final rect = Rect.fromLTWH(-6, -6, size.width + 12, size.height + 12);
+    // Start from top (-π/2), sweep clockwise
+    canvas.drawArc(rect, -pi / 2, 2 * pi * progress, false, paint);
+  }
+
+  @override
+  bool shouldRepaint(_ArcPainter old) => old.progress != progress;
 }

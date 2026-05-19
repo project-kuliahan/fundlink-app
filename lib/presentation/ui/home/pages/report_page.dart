@@ -148,7 +148,7 @@ class _ReportPageState extends State<ReportPage> {
                     : ListView.separated(
                         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                         itemCount: list.length,
-                        separatorBuilder: (_, a) => const SizedBox(height: 10),
+                        separatorBuilder: (context, index) => const SizedBox(height: 10),
                         itemBuilder: (context, index) =>
                             _TxCard(tx: list[index]),
                       ),

@@ -325,19 +325,20 @@ class _StatsPageState extends State<StatsPage> {
                                         ],
                                       ),
                                       const SizedBox(height: 16),
-                                      SizedBox(
-                                        height: 160,
-                                        child: filtered.isEmpty
-                                            ? const Center(
-                                                child: Text(
-                                                  'Tidak ada data',
-                                                  style: TextStyle(
-                                                    color: AppColors.grey,
-                                                    fontSize: 12,
+                                      ClipRect(
+                                        child: AspectRatio(
+                                          aspectRatio: 2.0,
+                                          child: filtered.isEmpty
+                                              ? const Center(
+                                                  child: Text(
+                                                    'Tidak ada data',
+                                                    style: TextStyle(
+                                                      color: AppColors.grey,
+                                                      fontSize: 12,
+                                                    ),
                                                   ),
-                                                ),
-                                              )
-                                            : BarChart(
+                                                )
+                                              : BarChart(
                                                 BarChartData(
                                                   alignment: BarChartAlignment
                                                       .spaceAround,
@@ -406,6 +407,7 @@ class _StatsPageState extends State<StatsPage> {
                                                   ),
                                                 ),
                                               ),
+                                        ),
                                       ),
                                       const SizedBox(height: 8),
                                       Row(
@@ -557,10 +559,12 @@ class _MetricCard extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              fontSize: 22,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: color,
             ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ],
       ),

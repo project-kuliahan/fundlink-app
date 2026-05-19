@@ -12,22 +12,79 @@ class NotificationPage extends StatefulWidget {
 
 class _NotificationPageState extends State<NotificationPage> {
   final _remote = NotificationRemoteDatasource();
+  final _scrollController = ScrollController();
+
   List<NotificationModel> _notifications = [];
   bool _loading = true;
+  bool _loadingMore = false;
+  int _currentPage = 1;
+  int _lastPage = 1;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        !_loadingMore &&
+        _currentPage < _lastPage) {
+      _loadMore();
+    }
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _notifications = [];
+      _currentPage = 1;
+    });
     try {
-      final data = await _remote.getNotifications();
-      if (mounted) setState(() => _notifications = data);
+      final result = await _remote.getNotificationsPaged(page: 1);
+      if (mounted) {
+        setState(() {
+          _notifications =
+              result['notifications'] as List<NotificationModel>;
+          _currentPage = result['current_page'] as int;
+          _lastPage = result['last_page'] as int;
+        });
+      }
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _loadMore() async {
+    if (_loadingMore || _currentPage >= _lastPage) return;
+    setState(() => _loadingMore = true);
+    try {
+      final nextPage = _currentPage + 1;
+      final result = await _remote.getNotificationsPaged(page: nextPage);
+      if (mounted) {
+        setState(() {
+          _notifications.addAll(
+            result['notifications'] as List<NotificationModel>,
+          );
+          _currentPage = result['current_page'] as int;
+          _lastPage = result['last_page'] as int;
+        });
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _loadingMore = false);
+  }
+
+  Future<void> _markAsRead(NotificationModel notif, int index) async {
+    try {
+      await _remote.markAsRead(notif.id);
+    } catch (_) {}
   }
 
   @override
@@ -83,59 +140,77 @@ class _NotificationPageState extends State<NotificationPage> {
                         style: TextStyle(color: AppColors.grey),
                       ),
                     )
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                      itemCount: _notifications.length,
-                      separatorBuilder: (_, a) => const SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        final notif = _notifications[index];
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 28,
-                                alignment: Alignment.centerLeft,
-                                child: const TransactionTypeIcon(
-                                  isIncome: true,
-                                ),
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      child: ListView.separated(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                        itemCount:
+                            _notifications.length + (_loadingMore ? 1 : 0),
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          if (index == _notifications.length) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16),
+                                child: CircularProgressIndicator(),
                               ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      notif.title,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.black,
-                                      ),
-                                    ),
-                                    Text(
-                                      notif.message,
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: AppColors.grey,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
+                            );
+                          }
+                          final notif = _notifications[index];
+                          return GestureDetector(
+                            onTap: () => _markAsRead(notif, index),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
                               ),
-                            ],
-                          ),
-                        );
-                      },
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 28,
+                                    alignment: Alignment.centerLeft,
+                                    child: const TransactionTypeIcon(
+                                      isIncome: true,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          notif.title,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.black,
+                                          ),
+                                        ),
+                                        Text(
+                                          notif.message,
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            color: AppColors.grey,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
             ),
           ],

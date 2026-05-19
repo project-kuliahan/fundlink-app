@@ -37,23 +37,40 @@ class _HomePageState extends State<HomePage> {
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(20, 56, 20, 16),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, authState) {
-                    final name = authState is AuthSuccess
-                        ? authState.user.name
-                        : 'User';
-                    return Text(
-                      'Selamat Datang, $name 👋',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.black,
-                      ),
-                    );
-                  },
+                Expanded(
+                  child: BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, authState) {
+                      final name = authState is AuthSuccess
+                          ? (authState.user.name ?? 'User')
+                          : 'User';
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Selamat Datang 👋',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.grey,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            name,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.black,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
+                const SizedBox(width: 12),
                 Stack(
                   children: [
                     GestureDetector(
@@ -234,7 +251,9 @@ class _HomePageState extends State<HomePage> {
                           );
                         }
                         final txs = state is TransactionsLoaded
-                            ? state.transactions.take(8).toList()
+                            ? (List.of(state.transactions)
+                                ..sort((a, b) => b.transactionDate.compareTo(a.transactionDate)))
+                                .take(8).toList()
                             : <TransactionModel>[];
                         if (txs.isEmpty) {
                           return const Center(
@@ -247,27 +266,16 @@ class _HomePageState extends State<HomePage> {
                             ),
                           );
                         }
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: txs.length,
-                            separatorBuilder: (_, _) => const Divider(
-                              height: 1,
-                              indent: 16,
-                              endIndent: 16,
-                            ),
-                            itemBuilder: (context, i) => _TxItem(
-                              tx: txs[i],
+                        return Column(
+                          children: txs.map((tx) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: _TxItem(
+                              tx: tx,
                               onTap: () => context.push(
-                                TransactionDetailPage(transactionModel: txs[i]),
+                                TransactionDetailPage(transactionModel: tx),
                               ),
                             ),
-                          ),
+                          )).toList(),
                         );
                       },
                     ),
@@ -328,11 +336,12 @@ class _SummaryCard extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: FontWeight.bold,
               color: textColor,
             ),
             overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ],
       ),
@@ -350,41 +359,53 @@ class _TxItem extends StatelessWidget {
     final parts = d.split('-');
     if (parts.length == 3) {
       const m = [
-        '',
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'Mei',
-        'Jun',
-        'Jul',
-        'Agu',
-        'Sep',
-        'Okt',
-        'Nov',
-        'Des',
+        '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+        'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
       ];
       final month = int.tryParse(parts[1]) ?? 0;
-      return '${parts[2]},${m[month]} ${parts[0]}';
+      return '${parts[2]} ${m[month]} ${parts[0]}';
     }
     return d;
   }
 
   @override
   Widget build(BuildContext context) {
+    final isIn = tx.isIncome;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: Padding(
+      child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
         child: Row(
           children: [
             Container(
-              width: 28,
-              alignment: Alignment.centerLeft,
-              child: TransactionTypeIcon(isIncome: tx.isIncome),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isIn
+                    ? AppColors.primary.withValues(alpha: 0.1)
+                    : Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: TransactionTypeIcon(
+                  isIncome: isIn,
+                  color: isIn ? AppColors.primary : Colors.red,
+                ),
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,11 +427,11 @@ class _TxItem extends StatelessWidget {
               ),
             ),
             Text(
-              formatRupiah(tx.amount),
-              style: const TextStyle(
+              '${isIn ? '+' : '-'}${formatRupiah(tx.amount)}',
+              style: TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.black,
+                fontWeight: FontWeight.w700,
+                color: isIn ? Colors.green : Colors.red,
               ),
             ),
           ],

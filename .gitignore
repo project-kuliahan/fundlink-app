@@ -1,32 +1,6 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history/
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-# Environment files
-.env
-.env.*
-!.env.example
-
-# IDEs and editors
-*.iml
-*.ipr
-*.iws
-.idea/
-.vscode/
-
-# Flutter and Dart
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# ==============================================================================
+# Flutter & Dart
+# ==============================================================================
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -34,48 +8,218 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
-/coverage/
-
-# Generated Flutter files
+flutter_*.jar
+GeneratedPluginRegistrant.java
 lib/generated_plugin_registrant.dart
+.fvm/
+.fvm/flutter_sdk
 
-# Symbolication and obfuscation
-app.*.symbols
-app.*.map.json
+# Generated Dart files
+*.g.dart
+*.freezed.dart
+*.config.dart
 
+# ==============================================================================
 # Android
+# ==============================================================================
 android/.gradle/
+android/captures/
+android/gradlew
+android/gradlew.bat
+android/gradle-wrapper.jar
+android/local.properties
+android/key.properties
+android/**/GeneratedPluginRegistrant.java
 android/app/debug/
 android/app/profile/
 android/app/release/
-android/local.properties
-android/**/generated/
+android/.idea/
+android/.settings/
+android/.classpath
+android/.project
+android/.buildpath
+**/android/.*
+**/android/*.jar
+**/android/kotlin-kotlin-compiler-embeddable-*.jar
 
-# iOS and macOS
-ios/Flutter/Flutter.framework
-ios/Flutter/Flutter.podspec
-ios/Flutter/Generated.xcconfig
-ios/Flutter/ephemeral/
-ios/Pods/
+# ==============================================================================
+# iOS & macOS
+# ==============================================================================
 ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.modulemap
+ios/Flutter/Flutter.podspec
+ios/Flutter/.last_build_id
+ios/Flutter/ephemeral/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Pods/
+ios/Podfile.lock
+ios/**/*.mode1v3
+ios/**/*.mode2v3
+ios/**/*.moved-aside
+ios/**/*.pbxuser
+ios/**/*.perspectivev3
+ios/**/*sync/
+ios/**/.sconsign.dblite
+ios/**/.tags*
+ios/**/.vscode/*
+!ios/**/.vscode/settings.json
+!ios/**/.vscode/tasks.json
+!ios/**/.vscode/launch.json
+!ios/**/.vscode/extensions.json
+ios/**/.idea/
+ios/**/xcodeproj/
+ios/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
 ios/ServiceDefinitions.json
-macos/Flutter/ephemeral/
-macos/Pods/
+ios/GoogleService-Info.plist
+
 macos/.symlinks/
+macos/Flutter/Flutter.framework
+macos/Flutter/Flutter.modulemap
+macos/Flutter/Flutter.podspec
+macos/Flutter/ephemeral/
+macos/Flutter/flutter_export_environment.sh
+macos/Pods/
+macos/Podfile.lock
+macos/**/.vscode/*
+!macos/**/.vscode/settings.json
+!macos/**/.vscode/tasks.json
+!macos/**/.vscode/launch.json
+!macos/**/.vscode/extensions.json
+macos/**/.idea/
+macos/**/xcodeproj/
 
+# ==============================================================================
 # Web
+# ==============================================================================
 web/.dart_tool/
+web/plugins.js
+web/canvaskit/
 
-# Windows and Linux build output
+# ==============================================================================
+# Windows
+# ==============================================================================
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugins.cmake
 windows/flutter/ephemeral/
-linux/flutter/ephemeral/
+windows/*.sln
+windows/*.vcxproj
+windows/*.vcxproj.filters
+windows/*.vcxproj.user
+windows/build/
 
-# Test and coverage output
+# ==============================================================================
+# Linux
+# ==============================================================================
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugin_registrant.h
+linux/flutter/generated_plugins.cmake
+linux/flutter/ephemeral/
+linux/build/
+
+# ==============================================================================
+# IDE and Editor
+# ==============================================================================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.vscode/launch.json
+.vscode/tasks.json
+.idea/
+*.iml
+*.ipr
+*.iws
+*.sublime-workspace
+*.sublime-project
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.swp
+*.swo
+*~
+
+# ==============================================================================
+# Environment & Configuration
+# ==============================================================================
+.env
+.env.local
+.env.*.local
+.env.*.example
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+**/key.jks
+**/signing.properties
+
+# ==============================================================================
+# Build & Output
+# ==============================================================================
+/coverage/
 test/.test_coverage.dart
 *.lcov
+app.*.symbols
+app.*.map.json
+*.apk
+*.aab
+*.ipa
+*.aar
+*.jar
+output/
 
-# Temporary files
+# ==============================================================================
+# OS Specific
+# ==============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# ==============================================================================
+# Version Control
+# ==============================================================================
+.svn/
+.git/
+
+# ==============================================================================
+# Miscellaneous
+# ==============================================================================
+*.class
+*.log
+*.pyc
+.atom/
+.buildlog/
+.history/
+.swiftpm/
+migrate_working_dir/
 *.tmp
 *.temp
 *.bak
 *.orig
+doc/api/
+node_modules/
+npm-debug.log
+.gradle
+*.lock
+
+# ==============================================================================
+# Firebase
+# ==============================================================================
+google-services.json
+
+# ==============================================================================
+# Plugin & Package specific
+# ==============================================================================
+.flutter-plugins*

@@ -1,4 +1,6 @@
 class TransactionModel {
+  static const String _assetBaseUrl = 'https://bahamud.my.id';
+
   final int id;
   final String type;
   final int amount;
@@ -24,6 +26,49 @@ class TransactionModel {
   static int _toInt(dynamic v) =>
       v == null ? 0 : (num.tryParse(v.toString()) ?? 0).toInt();
 
+  static String? _readImageUrl(Map<String, dynamic> json) {
+    final value =
+        json['attachment_url'] ??
+        json['attachment_path'] ??
+        json['attachment'] ??
+        json['image_url'] ??
+        json['image_path'] ??
+        json['imageUrl'] ??
+        json['image'] ??
+        json['photo'] ??
+        json['photo_url'] ??
+        json['photo_path'] ??
+        json['proof_image'] ??
+        json['proof_image_url'] ??
+        json['bukti'] ??
+        json['bukti_url'] ??
+        json['receipt'] ??
+        json['receipt_url'] ??
+        json['file'] ??
+        json['file_url'] ??
+        json['file_path'];
+
+    if (value == null) return null;
+    final raw = value.toString().trim();
+    if (raw.isEmpty || raw == 'null') return null;
+
+    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+    if (raw.startsWith('//')) return 'https:$raw';
+    if (raw.startsWith('/')) return '$_assetBaseUrl$raw';
+
+    final path = raw
+        .replaceFirst(RegExp(r'^public/'), '')
+        .replaceFirst(RegExp(r'^storage/'), '');
+    return '$_assetBaseUrl/storage/$path';
+  }
+
+  static String _toDateStr(dynamic v) {
+    if (v == null) return '';
+    final s = v.toString();
+    // Strip time part from ISO datetime e.g. "2026-05-19T00:00:00.000000Z"
+    return s.contains('T') ? s.split('T').first : s;
+  }
+
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
       id: _toInt(json['id']),
@@ -31,9 +76,9 @@ class TransactionModel {
       amount: _toInt(json['amount']),
       category: json['category'] ?? '',
       description: json['description'] ?? '',
-      transactionDate: json['transaction_date'] ?? '',
+      transactionDate: _toDateStr(json['transaction_date']),
       createdAt: json['created_at'] ?? '',
-      imageUrl: json['image_url'],
+      imageUrl: _readImageUrl(json),
     );
   }
 }

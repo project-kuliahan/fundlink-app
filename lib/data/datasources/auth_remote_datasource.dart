@@ -20,6 +20,22 @@ class AuthRemoteDatasource {
     return UserModel.fromJson(response);
   }
 
+  Future<Map<String, dynamic>> register(
+    String name,
+    String email,
+    String password,
+  ) async {
+    final response = await _apiClient.post('/register', {
+      'name': name,
+      'email': email,
+      'password': password,
+    }, withAuth: false);
+    return {
+      'token': response['token'],
+      'user': UserModel.fromJson(response['user']),
+    };
+  }
+
   Future<void> logout() async {
     await _apiClient.post('/logout', {});
   }

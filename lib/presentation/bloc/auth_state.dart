@@ -18,3 +18,9 @@ class AuthFailure extends AuthState {
 }
 
 class AuthLogout extends AuthState {}
+
+class RegisterSuccess extends AuthState {
+  final UserModel user;
+  final String token;
+  RegisterSuccess(this.user, this.token);
+}

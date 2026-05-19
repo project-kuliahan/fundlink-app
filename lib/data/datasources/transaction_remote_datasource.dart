@@ -34,7 +34,7 @@ class TransactionRemoteDatasource {
       response = await _apiClient.postMultipart(
         '/transactions',
         data.map((k, v) => MapEntry(k, v.toString())),
-        'image',
+        'attachment',
         imageBytes,
         imageName ?? 'photo.jpg',
       );

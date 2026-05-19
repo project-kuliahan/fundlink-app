@@ -380,7 +380,7 @@ class _ProfileView extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _FormSheet(
+      builder: (sheetCtx) => _FormSheet(
         title: 'Edit Profil',
         fields: [
           _FieldData(
@@ -402,7 +402,35 @@ class _ProfileView extends StatelessWidget {
           ),
         ],
         submitLabel: 'Simpan Perubahan',
-        onSubmit: () => Navigator.pop(context),
+        onSubmit: () async {
+          Navigator.pop(sheetCtx);
+          try {
+            final userRemote = UserRemoteDatasource();
+            await userRemote.updateProfile(
+              name: nameCtrl.text.trim(),
+              email: emailCtrl.text.trim(),
+              phone: phoneCtrl.text.trim(),
+            );
+            onRefresh?.call();
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Profil berhasil diperbarui'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(e.toString()),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        },
       ),
     );
   }
@@ -416,7 +444,7 @@ class _ProfileView extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _FormSheet(
+      builder: (sheetCtx) => _FormSheet(
         title: 'Ubah Password',
         fields: [
           _FieldData(
@@ -439,7 +467,43 @@ class _ProfileView extends StatelessWidget {
           ),
         ],
         submitLabel: 'Ubah Password',
-        onSubmit: () => Navigator.pop(context),
+        onSubmit: () async {
+          if (newCtrl.text != confirmCtrl.text) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Konfirmasi password tidak cocok'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+            return;
+          }
+          Navigator.pop(sheetCtx);
+          try {
+            final userRemote = UserRemoteDatasource();
+            await userRemote.changePassword(
+              currentPassword: oldCtrl.text,
+              newPassword: newCtrl.text,
+              confirmPassword: confirmCtrl.text,
+            );
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Password berhasil diubah'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(e.toString()),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        },
       ),
     );
   }
@@ -580,7 +644,7 @@ class _FormSheet extends StatelessWidget {
   final String title;
   final List<_FieldData> fields;
   final String submitLabel;
-  final VoidCallback onSubmit;
+  final Future<void> Function() onSubmit;
 
   const _FormSheet({
     required this.title,

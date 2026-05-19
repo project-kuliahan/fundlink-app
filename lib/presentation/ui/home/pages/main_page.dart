@@ -21,10 +21,24 @@ class _MainPageState extends State<MainPage> {
     ProfilePage(),
   ];
 
+  void _onNavTap(int index) => setState(() => _currentIndex = index);
+
+  void _onHorizontalSwipe(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity < -300 && _currentIndex < _pages.length - 1) {
+      setState(() => _currentIndex++);
+    } else if (velocity > 300 && _currentIndex > 0) {
+      setState(() => _currentIndex--);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _pages),
+      body: GestureDetector(
+        onHorizontalDragEnd: _onHorizontalSwipe,
+        child: IndexedStack(index: _currentIndex, children: _pages),
+      ),
       bottomNavigationBar: SafeArea(
         top: false,
         child: Container(
@@ -49,28 +63,28 @@ class _MainPageState extends State<MainPage> {
                 currentIndex: _currentIndex,
                 icon: Icons.home_outlined,
                 label: 'Beranda',
-                onTap: (i) => setState(() => _currentIndex = i),
+                onTap: _onNavTap,
               ),
               _NavItem(
                 index: 1,
                 currentIndex: _currentIndex,
                 icon: Icons.receipt_long_outlined,
                 label: 'Transaksi',
-                onTap: (i) => setState(() => _currentIndex = i),
+                onTap: _onNavTap,
               ),
               _NavItem(
                 index: 2,
                 currentIndex: _currentIndex,
                 icon: Icons.bar_chart_outlined,
                 label: 'Statistik',
-                onTap: (i) => setState(() => _currentIndex = i),
+                onTap: _onNavTap,
               ),
               _NavItem(
                 index: 3,
                 currentIndex: _currentIndex,
                 icon: Icons.person_outline_rounded,
                 label: 'Profil',
-                onTap: (i) => setState(() => _currentIndex = i),
+                onTap: _onNavTap,
               ),
             ],
           ),

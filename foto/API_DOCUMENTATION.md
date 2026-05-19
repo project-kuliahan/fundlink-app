@@ -62,6 +62,32 @@ Authorization: Bearer {token}
 
 ## API Endpoints
 
+### Register
+```http
+POST https://bahamud.my.id/api/register
+Content-Type: application/json
+
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "password123"
+}
+```
+
+**Response**:
+```json
+{
+  "token": "2|xyz...",
+  "user": {
+    "id": 2,
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "role": "user",
+    "unit_id": null
+  }
+}
+```
+
 ### Dashboard
 ```http
 GET https://bahamud.my.id/api/dashboard
@@ -139,9 +165,37 @@ Content-Type: application/json
 }
 ```
 
+> [!IMPORTANT]
+> **Image Upload in Mobile (Flutter/React Native/Android)**:
+> When uploading images (such as `attachment` for transactions, or `photo` for profile updates), you **MUST** use `multipart/form-data` instead of `application/json`.
+> Do not send base64 encoded strings for file fields. Send the actual file stream.
+
 ### User Profile
 ```http
 GET https://bahamud.my.id/api/user
+Authorization: Bearer {token}
+```
+
+### Update Profile
+```http
+POST https://bahamud.my.id/api/user/profile
+Authorization: Bearer {token}
+Content-Type: multipart/form-data
+
+name=Jane Doe
+email=jane@example.com
+photo=[FILE_STREAM]
+```
+
+### Units (Admin Only)
+```http
+GET https://bahamud.my.id/api/units
+Authorization: Bearer {token}
+```
+
+### Users (Admin Only)
+```http
+GET https://bahamud.my.id/api/users
 Authorization: Bearer {token}
 ```
 
@@ -151,10 +205,25 @@ GET https://bahamud.my.id/api/notifications?page=1
 Authorization: Bearer {token}
 ```
 
+### Mark Notification as Read
+```http
+POST https://bahamud.my.id/api/notifications/{id}/read
+Authorization: Bearer {token}
+```
+
 ## Mobile App Integration Examples
 
 ### Flutter/Dart Example
+
+> [!TIP]
+> **Uploading Files with Flutter (MultipartRequest)**
+> To upload images to Fundlink APIs, use `http.MultipartRequest` instead of `http.post`.
+
 ```dart
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:io';
+
 class ApiService {
   final String baseUrl = 'https://bahamud.my.id/api';
   String? _token;
@@ -194,6 +263,47 @@ class ApiService {
       throw Exception('Unauthorized');
     } else {
       throw Exception('Failed to load dashboard');
+    }
+  }
+
+  // Example: Uploading Transaction with Image
+  Future<Map<String, dynamic>> createTransaction({
+    required String type,
+    required String amount,
+    required String category,
+    required String description,
+    required String transactionDate,
+    File? attachment,
+  }) async {
+    var request = http.MultipartRequest('POST', Uri.parse('\$baseUrl/transactions'));
+    
+    // Add Headers
+    request.headers.addAll({
+      'Authorization': 'Bearer \$_token',
+      'Accept': 'application/json',
+    });
+
+    // Add Fields
+    request.fields['type'] = type;
+    request.fields['amount'] = amount;
+    request.fields['category'] = category;
+    request.fields['description'] = description;
+    request.fields['transaction_date'] = transactionDate;
+
+    // Add File
+    if (attachment != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath('attachment', attachment.path)
+      );
+    }
+
+    var streamedResponse = await request.send();
+    var response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to create transaction: \${response.body}');
     }
   }
 }

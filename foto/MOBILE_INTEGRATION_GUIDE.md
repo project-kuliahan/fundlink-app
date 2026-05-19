@@ -237,12 +237,39 @@ class TransactionViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> createTransaction(Map<String, dynamic> transactionData) async {
+  Future<bool> createTransaction({
+    required Map<String, String> data,
+    File? attachment,
+  }) async {
     try {
-      await _apiClient.post('/transactions', transactionData);
-      // Refresh transactions after creating new one
-      await loadTransactions(refresh: true);
-      return true;
+      final token = await _authService.getToken();
+      var request = http.MultipartRequest('POST', Uri.parse('${ApiClient.baseUrl}/transactions'));
+      
+      request.headers.addAll({
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      });
+
+      request.fields.addAll(data);
+
+      if (attachment != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('attachment', attachment.path)
+        );
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 201) {
+        // Refresh transactions after creating new one
+        await loadTransactions(refresh: true);
+        return true;
+      } else {
+        _error = 'Failed to create transaction: ${response.body}';
+        notifyListeners();
+        return false;
+      }
     } catch (e) {
       _error = e.toString();
       notifyListeners();

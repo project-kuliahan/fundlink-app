@@ -55,5 +55,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await authLocalDatasource.clearAll();
       emit(AuthLogout());
     });
+
+    on<RegisterEvent>((event, emit) async {
+      emit(AuthLoading());
+      try {
+        final result = await authRemoteDatasource.register(
+          event.name,
+          event.email,
+          event.password,
+        );
+        await authLocalDatasource.saveToken(result['token']);
+        await authLocalDatasource.saveUser(
+          (result['user'] as dynamic).toJson(),
+        );
+        emit(RegisterSuccess(result['user'], result['token']));
+      } catch (e) {
+        emit(AuthFailure(e.toString()));
+      }
+    });
   }
 }

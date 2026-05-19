@@ -22,5 +22,6 @@ List<TransactionModel> filterTransactions({
       default: // Bulanan
         return y == year && m == month;
     }
-  }).toList();
+  }).toList()
+    ..sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
 }

@@ -100,11 +100,13 @@ class ApiClient {
         http.MultipartRequest('POST', Uri.parse('$baseUrl$endpoint'));
     request.headers.addAll(headers);
     request.fields.addAll(fields);
-    request.files.add(http.MultipartFile.fromBytes(
-      fileField,
-      fileBytes,
-      filename: fileName,
-    ));
+    if (fileBytes.isNotEmpty && fileName.isNotEmpty) {
+      request.files.add(http.MultipartFile.fromBytes(
+        fileField,
+        fileBytes,
+        filename: fileName,
+      ));
+    }
 
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
